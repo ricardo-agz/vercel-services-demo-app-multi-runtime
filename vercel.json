@@ -17,6 +17,7 @@
             "routePrefix": "/_/go-api"
         },
         "express-api": {
+            "framework": "express",
             "workspace": "services/express-api",
             "entrypoint": "index.js",
             "routePrefix": "/_/express-api"
