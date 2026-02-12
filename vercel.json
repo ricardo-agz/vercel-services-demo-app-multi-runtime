@@ -1,0 +1,26 @@
+{
+    "experimentalServices": {
+        "dashboard": {
+            "framework": "nextjs",
+            "workspace": "apps/web",
+            "routePrefix": "/web"
+        },
+        "flask-api": {
+            "framework": "flask",
+            "workspace": "services/flask-api",
+            "entrypoint": "main.py",
+            "routePrefix": "/_/flask-api"
+        },
+        "go-api": {
+            "workspace": "services/go-api",
+            "entrypoint": "main.go",
+            "routePrefix": "/_/go-api"
+        },
+        "express-api": {
+            "workspace": "services/express-api",
+            "entrypoint": "index.js",
+            "routePrefix": "/_/express-api"
+        }
+    }
+}
+  
