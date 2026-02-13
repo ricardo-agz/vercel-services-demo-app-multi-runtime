@@ -5,14 +5,12 @@ import { useState, useEffect, useCallback } from 'react';
 // ─── API Config ──────────────────────────────────────────────────────────────
 const FLASK_API_URL = process.env.NEXT_PUBLIC_FLASK_API_URL;
 const GO_API_URL = process.env.NEXT_PUBLIC_GO_API_URL;
-const EXPRESS_API_URL = process.env.NEXT_PUBLIC_EXPRESS_API_URL;
 
 // ─── Favicon Domains ─────────────────────────────────────────────────────────
 const FAVICON = {
   'Next.js': 'nextjs.org',
   'Flask': 'flask.palletsprojects.com',
   'Go': 'go.dev',
-  'Express': 'expressjs.com',
 };
 
 function faviconUrl(tech, size = 128) {
@@ -25,7 +23,6 @@ const SERVICES = [
   { id: 'web', name: 'Web', tech: 'Next.js', route: '/', color: '#888', kind: 'frontend' },
   { id: 'flask-api', name: 'Core API', tech: 'Flask', route: FLASK_API_URL, color: '#3b82f6', kind: 'backend' },
   { id: 'go-api', name: 'Analytics API', tech: 'Go', route: GO_API_URL, color: '#00c853', kind: 'backend' },
-  { id: 'express-api', name: 'Users API', tech: 'Express', route: EXPRESS_API_URL, color: '#f59e0b', kind: 'backend' },
 ];
 
 // ─── Endpoint Registry ───────────────────────────────────────────────────────
@@ -63,24 +60,6 @@ const ENDPOINT_GROUPS = [
       { id: 'go-risk', method: 'GET', path: '/analytics/risk', name: 'Risk Analysis', description: 'Monte Carlo simulation-based risk assessment with VaR calculation and risk factors.', params: [], body: null },
       { id: 'go-forecast', method: 'GET', path: '/analytics/forecast', name: 'Revenue Forecast', description: 'ARIMA model revenue predictions with confidence intervals for 12 months.', params: [], body: null },
       { id: 'go-benchmark', method: 'GET', path: '/analytics/benchmark', name: 'Industry Benchmark', description: 'Company metrics vs. industry medians with percentile rankings.', params: [], body: null },
-    ],
-  },
-  {
-    name: 'Express API',
-    description: 'Users & subscriptions management',
-    runtime: 'Node.js',
-    tech: 'Express',
-    color: '#f59e0b',
-    baseUrl: EXPRESS_API_URL,
-    endpoints: [
-      { id: 'express-root', method: 'GET', path: '', name: 'API Root', description: 'Returns service information and list of available endpoints.', params: [], body: null },
-      { id: 'express-health', method: 'GET', path: '/health', name: 'Health Check', description: 'Returns health status of the Express API service.', params: [], body: null },
-      { id: 'express-users', method: 'GET', path: '/users', name: 'Users', description: 'List of users with plan, status, and spend details.', params: [{ name: 'limit', type: 'number', default: 10, description: 'Max number of users' }, { name: 'status', type: 'string', default: '', description: 'Filter by status (active, trial, churned)' }], body: null },
-      { id: 'express-user-stats', method: 'GET', path: '/users/stats', name: 'User Stats', description: 'Aggregated user metrics including total, active, trial, churned, and activation rate.', params: [], body: null },
-      { id: 'express-subscriptions', method: 'GET', path: '/subscriptions', name: 'Subscriptions', description: 'Subscription plans with active counts and MRR per plan.', params: [], body: null },
-      { id: 'express-mrr', method: 'GET', path: '/subscriptions/mrr', name: 'MRR Breakdown', description: 'Total MRR, ARR, paying customers, ARPU, and MRR trend over time.', params: [], body: null },
-      { id: 'express-churn', method: 'GET', path: '/churn', name: 'Churn Analysis', description: 'Monthly churn rates, recovered users, and top churn reasons.', params: [], body: null },
-      { id: 'express-add-user', method: 'POST', path: '/users', name: 'Add User', description: 'Create a new user account.', params: [], body: JSON.stringify({ name: 'New User', email: 'user@example.com', plan: 'starter' }, null, 2) },
     ],
   },
 ];
@@ -277,7 +256,7 @@ function Sidebar({ activeTab, onTabChange, serviceHealth }) {
         fontSize: 10, color: 'var(--gray-800)', display: 'flex', gap: 12,
       }}>
         <a href="/" style={{ color: 'var(--gray-600)', transition: 'color .15s' }}>Home</a>
-        <span style={{ marginLeft: 'auto', color: 'var(--gray-800)' }}>4 services · 1 URL</span>
+        <span style={{ marginLeft: 'auto', color: 'var(--gray-800)' }}>3 services · 1 URL</span>
       </div>
     </aside>
   );
@@ -287,13 +266,10 @@ function Sidebar({ activeTab, onTabChange, serviceHealth }) {
 function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
   const [flaskSample, setFlaskSample] = useState(null);
   const [goSample, setGoSample] = useState(null);
-  const [expressSample, setExpressSample] = useState(null);
   const [flaskLatency, setFlaskLatency] = useState(null);
   const [goLatency, setGoLatency] = useState(null);
-  const [expressLatency, setExpressLatency] = useState(null);
   const [flaskStatus, setFlaskStatus] = useState(null);
   const [goStatus, setGoStatus] = useState(null);
-  const [expressStatus, setExpressStatus] = useState(null);
 
   const fetchSamples = useCallback(async () => {
     // Flask sample
@@ -320,18 +296,6 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
       setGoStatus(0);
       setGoSample(JSON.stringify({ error: e.message }, null, 2));
     }
-    // Express sample
-    const s3 = performance.now();
-    try {
-      const res = await fetch(`${EXPRESS_API_URL}/users/stats`);
-      setExpressLatency(Math.round(performance.now() - s3));
-      setExpressStatus(res.status);
-      setExpressSample(JSON.stringify(await res.json(), null, 2));
-    } catch (e) {
-      setExpressLatency(Math.round(performance.now() - s3));
-      setExpressStatus(0);
-      setExpressSample(JSON.stringify({ error: e.message }, null, 2));
-    }
   }, []);
 
   useEffect(() => { fetchSamples(); }, [fetchSamples]);
@@ -343,7 +307,7 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>Overview</h1>
           <p style={{ fontSize: 13, color: 'var(--gray-600)', marginTop: 4 }}>
-            How this project connects 4 services through a single Vercel URL
+            How this project connects 3 services through a single Vercel URL
           </p>
         </div>
         <button
@@ -391,7 +355,7 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
         {/* Connecting lines visual */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
           <div style={{ width: '80%', height: 1, background: 'var(--border)', position: 'relative' }}>
-            {[0, 25, 50, 75, 100].map(p => (
+            {[0, 33, 67, 100].map(p => (
               <div key={p} style={{ position: 'absolute', left: `${p}%`, top: -4, width: 1, height: 9, background: 'var(--border)' }} />
             ))}
           </div>
@@ -426,7 +390,7 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
       </div>
 
       {/* ─── Backend API Connection Cards ─────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Flask API */}
         <div style={{
           background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12,
@@ -573,78 +537,6 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
           </div>
         </div>
 
-        {/* Express API */}
-        <div style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12,
-          overflow: 'hidden',
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: '16px 20px', borderBottom: '1px solid var(--border)',
-            display: 'flex', alignItems: 'center', gap: 10,
-          }}>
-            <TechIcon tech="Express" size={22} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Express API</div>
-              <div style={{ fontSize: 11, color: 'var(--gray-600)', fontFamily: 'var(--font-mono)' }}>
-                Node.js · <span style={{ color: '#f59e0b' }}>{EXPRESS_API_URL}/*</span>
-              </div>
-            </div>
-            <StatusDot status={serviceHealth['express-api'] || 'checking'} />
-          </div>
-
-          {/* Endpoints list */}
-          <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 10, color: 'var(--gray-700)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 8 }}>
-              {ENDPOINT_GROUPS[2].endpoints.length} Endpoints
-            </div>
-            {ENDPOINT_GROUPS[2].endpoints.map(ep => (
-              <div key={ep.id} style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: 11,
-              }}>
-                <MethodBadge method={ep.method} small />
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--gray-400)', flex: 1 }}>{ep.path}</span>
-                <span style={{ color: 'var(--gray-700)', fontSize: 10 }}>{ep.name}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Live sample */}
-          <div style={{ padding: '12px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 10, color: 'var(--gray-700)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                Live Response
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--gray-600)' }}>
-                GET /users/stats
-              </span>
-              {expressStatus && (
-                <span style={{
-                  marginLeft: 'auto', padding: '1px 6px', borderRadius: 3, fontSize: 10, fontWeight: 700,
-                  fontFamily: 'var(--font-mono)',
-                  background: expressStatus >= 200 && expressStatus < 300 ? 'rgba(0,200,83,0.12)' : 'rgba(255,23,68,0.12)',
-                  color: expressStatus >= 200 && expressStatus < 300 ? '#00c853' : '#ff1744',
-                }}>
-                  {expressStatus}
-                </span>
-              )}
-              {expressLatency != null && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: latencyColor(expressLatency) }}>
-                  {expressLatency}ms
-                </span>
-              )}
-            </div>
-            {expressSample ? (
-              <div
-                className="json-viewer"
-                style={{ maxHeight: 180, overflowY: 'auto', fontSize: 11 }}
-                dangerouslySetInnerHTML={{ __html: syntaxHighlightJson(expressSample) }}
-              />
-            ) : (
-              <Skeleton h={100} />
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Footer summary */}
@@ -652,7 +544,7 @@ function OverviewTab({ serviceHealth, loading, onRefresh, error }) {
         textAlign: 'center', padding: '20px 0 8px', fontSize: 11, color: 'var(--gray-800)',
         fontFamily: 'var(--font-mono)',
       }}>
-        4 services · 4 runtimes · 1 domain — all orchestrated by Vercel
+        3 services · 3 runtimes · 1 domain — all orchestrated by Vercel
       </div>
     </div>
   );
@@ -940,12 +832,10 @@ function BenchmarkTab() {
 
   const flaskResults = results?.filter(r => r.tech === 'Flask') || [];
   const goResults = results?.filter(r => r.tech === 'Go') || [];
-  const expressResults = results?.filter(r => r.tech === 'Express') || [];
   const flaskAvg = flaskResults.length ? Math.round(flaskResults.reduce((a, b) => a + b.avg, 0) / flaskResults.length) : 0;
   const goAvg = goResults.length ? Math.round(goResults.reduce((a, b) => a + b.avg, 0) / goResults.length) : 0;
-  const expressAvg = expressResults.length ? Math.round(expressResults.reduce((a, b) => a + b.avg, 0) / expressResults.length) : 0;
   const maxLatency = results ? Math.max(...results.map(r => r.max)) : 0;
-  const avgEntries = [flaskAvg && { name: 'Flask', avg: flaskAvg }, goAvg && { name: 'Go', avg: goAvg }, expressAvg && { name: 'Express', avg: expressAvg }].filter(Boolean);
+  const avgEntries = [flaskAvg && { name: 'Flask', avg: flaskAvg }, goAvg && { name: 'Go', avg: goAvg }].filter(Boolean);
   const fastest = avgEntries.length ? avgEntries.reduce((a, b) => a.avg < b.avg ? a : b) : null;
   const slowest = avgEntries.length ? avgEntries.reduce((a, b) => a.avg > b.avg ? a : b) : null;
 
@@ -954,13 +844,13 @@ function BenchmarkTab() {
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>Latency Benchmark</h1>
         <p style={{ fontSize: 13, color: 'var(--gray-600)', marginTop: 4, lineHeight: 1.6 }}>
-          Fire requests at Flask, Go, and Express endpoints side by side. Compare response times, throughput, and reliability.
+          Fire requests at Flask and Go endpoints side by side. Compare response times, throughput, and reliability.
         </p>
       </div>
 
       {/* Config Section */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: 20, marginBottom: 24 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           {/* Flask Endpoints */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1011,30 +901,6 @@ function BenchmarkTab() {
             ))}
           </div>
 
-          {/* Express Endpoints */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <TechIcon tech="Express" size={16} />
-                <span style={{ fontSize: 13, fontWeight: 600 }}>Express API</span>
-                <span style={{ fontSize: 11, color: 'var(--gray-600)' }}>Node.js</span>
-              </div>
-              <button onClick={() => selectGroup('Express')} style={{
-                padding: '2px 8px', borderRadius: 4, border: '1px solid var(--border)',
-                background: 'transparent', color: 'var(--gray-600)', fontSize: 10, cursor: 'pointer', fontFamily: 'inherit',
-              }}>Toggle All</button>
-            </div>
-            {ALL_ENDPOINTS.filter(e => e.tech === 'Express').map(ep => (
-              <label key={ep.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px',
-                borderRadius: 6, cursor: 'pointer', fontSize: 12, color: selected[ep.id] ? '#fff' : 'var(--gray-600)',
-              }}>
-                <input type="checkbox" checked={selected[ep.id] || false} onChange={() => toggleEndpoint(ep.id)} style={{ accentColor: '#f59e0b' }} />
-                <MethodBadge method={ep.method} small />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>{ep.path}</span>
-              </label>
-            ))}
-          </div>
         </div>
 
         {/* Controls */}
@@ -1082,13 +948,6 @@ function BenchmarkTab() {
                 <span style={{ fontSize: 10, color: '#00c853', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Go Avg</span>
               </div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{goAvg}<span style={{ fontSize: 14, color: 'var(--gray-600)' }}>ms</span></div>
-            </div>
-            <div style={{ flex: 1, minWidth: 140, padding: '16px 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <TechIcon tech="Express" size={14} />
-                <span style={{ fontSize: 10, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Express Avg</span>
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>{expressAvg}<span style={{ fontSize: 14, color: 'var(--gray-600)' }}>ms</span></div>
             </div>
             <div style={{ flex: 1, minWidth: 140, padding: '16px 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10 }}>
               <div style={{ fontSize: 10, color: 'var(--gray-500)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Fastest</div>
@@ -1221,7 +1080,7 @@ function BenchmarkTab() {
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--gray-600)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10 }}>
           <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.3 }}>⚡</div>
           <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--gray-500)' }}>Select endpoints and run the benchmark</div>
-          <div style={{ fontSize: 12, marginTop: 6 }}>Compare Flask (Python) vs Go (Gin) vs Express (Node.js) response times head-to-head</div>
+          <div style={{ fontSize: 12, marginTop: 6 }}>Compare Flask (Python) vs Go (Gin) response times head-to-head</div>
         </div>
       )}
     </div>
@@ -1240,7 +1099,6 @@ export default function DashboardPage() {
       { id: 'web', url: '/' },
       { id: 'flask-api', url: `${FLASK_API_URL}/health` },
       { id: 'go-api', url: `${GO_API_URL}/health` },
-      { id: 'express-api', url: `${EXPRESS_API_URL}/health` },
     ];
     for (const check of checks) {
       setServiceHealth(prev => ({ ...prev, [check.id]: 'checking' }));
